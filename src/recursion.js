@@ -166,18 +166,19 @@ var multiply = function (x, y) {
 // 13. Write a function that divides two numbers without using the / operator  or
 // JavaScript's Math object.
 var divide = function (x, y) {
-  let count;
-  let adder = 1;
-  if (x === 0) {
-    return `${count}`;
+  if (x === 0 && y === 0) {
+    return NaN;
   }
-  if (x - y >= y) {
-    count += adder;
-    return divide(x - y, y);
-  } else {
-    x = x * 10;
-    adder = adder / 10;
-    return divide(x - y)
+  if (x === 0 || y === 0 || x < y) {
+    return 0
+  } else if (x < 0 && y < 0) {
+    return divide(-x, -y)
+  } else if (x < 0) {
+    return -divide(-x, y)
+  } else if (y < 0) {
+    return -divide(x, -y)
+  } else if (x >= y) {
+    return 1 + divide(x - y, y)
   }
 }
 
@@ -186,7 +187,18 @@ var divide = function (x, y) {
 // Example:  gcd(4,36);  // 4
 // http://www.cse.wustl.edu/~kjg/cse131/Notes/Recursion/recursion.html
 // https://www.khanacademy.org/computing/computer-science/cryptography/modarithmetic/a/the-euclidean-algorithm
-var gcd = function (x, y) { };
+var gcd = function (x, y) {
+  if (x < 0 || y < 0) {
+    return null
+  }
+  if (x >= y && x % y === 0) {
+    return y;
+  } else if (y >= x && y % x === 0) {
+    return x;
+  } else if (x >= y) {
+    return gcd(y, x % y)
+  } else return gcd(x, y % x)
+ };
 
 // 15. Write a function that compares each character of two strings and returns true if
 // both are identical.
@@ -269,37 +281,85 @@ var rMap = function (array, callback) {
 // var testobj = {'e': {'x':'y'}, 't':{'r': {'e':'r'}, 'p': {'y':'r'}},'y':'e'};
 // countKeysInObj(testobj, 'r') // 1
 // countKeysInObj(testobj, 'e') // 2
-var countKeysInObj = function (obj, key) { };
+var countKeysInObj = function (obj, key) {
+  let count = 0;
+  for (const prop in obj) {
+    if (prop === key) {
+      count += 1;
+    }
+    if (typeof obj[prop] === 'object') {
+      count = count + countKeysInObj(obj[prop], key)
+    }
+  }
+  return count;
+}
 
 // 22. Write a function that counts the number of times a value occurs in an object.
 // var testobj = {'e': {'x':'y'}, 't':{'r': {'e':'r'}, 'p': {'y':'r'}},'y':'e'};
 // countValuesInObj(testobj, 'r') // 2
 // countValuesInObj(testobj, 'e') // 1
-var countValuesInObj = function (obj, value) { };
+var countValuesInObj = function (obj, value) { 
+  let count = 0;
+  for (const prop in obj) {
+    if (obj[prop] === value) {
+      count += 1;
+    }
+    if (typeof obj[prop] === 'object') {
+      count = count + countValuesInObj(obj[prop], value);
+    }
+  }
+  return count;
+};
 
 // 23. Find all keys in an object (and nested objects) by a provided name and rename
 // them to a provided new name while preserving the value stored at that key.
-var replaceKeysInObj = function (obj, key, newKey) { };
+var replaceKeysInObj = function (obj, key, newKey) {
+  for (let prop in obj) {
+    if (typeof obj[prop] === "object") {
+      replaceKeysInObj(obj[prop], key, newKey)
+    }
+    if (prop === key) {
+      obj[newKey] = obj[prop]
+      delete obj[prop];
+    }
+  }
+  return obj;
+};
+
+var testobj = { 'b': { 'r': 'y' }, 'r': { 'r': { 'e': 'r' }, 'p': { 'r': 'v' } }, 'y': 'e' };
+console.log(replaceKeysInObj(testobj, 'r', 'a')) 
+
 
 // 24. Get the first n Fibonacci numbers.  In the Fibonacci Sequence, each subsequent
 // number is the sum of the previous two.
 // Example:  0, 1, 1, 2, 3, 5, 8, 13, 21, 34.....
 // fibonacci(5);  // [0, 1, 1, 2, 3, 5]
 // Note:  The 0 is not counted.
-var fibonacci = function (n) { };
-
+var fibonacci = function (n) {
+  if (n <= 0) {
+    return null;
+  } else if (n === 1) {
+    return [0, 1]
+  } else {
+    let arr = fibonacci(n - 1);
+    let index1 = arr[arr.length - 1];
+    let index2 = arr[arr.length - 2];
+    return arr.concat([index1 + index2]);
+  }
+};
+console.log(fibonacci(4))
 // 25. Return the Fibonacci number located at index n of the Fibonacci sequence.
 // [0,1,1,2,3,5,8,13,21]
 // nthFibo(5); // 5
 // nthFibo(7); // 13
 // nthFibo(3); // 2
 var nthFibo = function (n) {
-  if (n < 0) return 0
+  if (n < 0) return null
   else if (n === 0) return 0
   else if (n === 1) return 1
   else return nthFibo(n - 1) + nthFibo(n - 2);
 };
-
+console.log(nthFibo(5));
 // 26. Given an array of words, return a new array containing each word capitalized.
 // var words = ['i', 'am', 'learning', 'recursion'];
 // capitalizedWords(words); // ['I', 'AM', 'LEARNING', 'RECURSION']
@@ -326,11 +386,33 @@ var capitalizeFirst = function (array) {
 //   e: {e: {e: 2}, ee: 'car'}
 // };
 // nestedEvenSum(obj1); // 10
-var nestedEvenSum = function (obj) { };
+var nestedEvenSum = function (obj) { 
+  let sum = 0;
+  for (const prop in obj) {
+    if (obj[prop] % 2 === 0) {
+      sum += obj[prop];
+    }
+    if (typeof obj[prop] === 'object') {
+      sum = sum + nestedEvenSum(obj[prop]);
+    }
+  }
+  return sum;
+};
 
 // 29. Flatten an array containing nested arrays.
 // Example: flatten([1,[2],[3,[[4]]],5]); // [1,2,3,4,5]
-var flatten = function (arrays) { };
+var flatten = function (array) {
+  array.forEach((el) => {
+    if (Array.isArray(el)) {
+      array = flatten(Array.prototype.concat.apply([], array))
+    }
+  });  
+  return array;
+};
+console.log(flatten([[12, [[34], [56]], 78]]))
+console.log(flatten([3, [0, [34, [7, [18]]]]]))
+console.log(flatten([[1], [2, [], 3], [], [[4]], 5, 6]))
+console.log(flatten([[1], [2, 3], [[4]], 5, 6]))
 
 // 30. Given a string, return an object containing tallies of each letter.
 // letterTally('potato'); // {'p':1, 'o':2, 't':2, 'a':1}
@@ -362,8 +444,10 @@ var compress = function (list) {
 // 32. Augument every element in a list with a new value where each element is an array
 // itself.
 // Example: augmentElements([[],[3],[7]], 5); // [[5],[3,5],[7,5]]
-var augmentElements = function (array, aug) { };
-
+var augmentElements = function (array, aug) { 
+  return [array[0].concat([aug])].concat(augmentElements(array.slice(1), aug))
+};
+console.log(augmentElements([[], [3], [7]], 5))
 // 33. Reduce a series of zeroes to a single 0.
 // minimizeZeroes([2,0,0,0,1,4]) // [2,0,1,4]
 // minimizeZeroes([2,0,0,0,1,0,0,4]) // [2,0,1,0,4]
