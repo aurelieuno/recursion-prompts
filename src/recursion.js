@@ -444,9 +444,11 @@ var compress = function (list) {
 // 32. Augument every element in a list with a new value where each element is an array
 // itself.
 // Example: augmentElements([[],[3],[7]], 5); // [[5],[3,5],[7,5]]
-var augmentElements = function (array, aug) { 
-  return [array[0].concat([aug])].concat(augmentElements(array.slice(1), aug))
-};
+var augmentElements = function (array, aug) {
+  if (array.length > 0) {
+    return [array[0].concat([aug])].concat(augmentElements(array.slice(1), aug))
+  } else return [];
+}
 console.log(augmentElements([[], [3], [7]], 5))
 // 33. Reduce a series of zeroes to a single 0.
 // minimizeZeroes([2,0,0,0,1,4]) // [2,0,1,4]
@@ -493,13 +495,54 @@ var numToText = function (str) {
 // *** EXTRA CREDIT ***
 
 // 36. Return the number of times a tag occurs in the DOM.
-var tagCount = function (tag, node) { };
+var tagCount = function (tag, node, count = 0) {
+
+  if (node.nodeName === tag.toUpperCase()) {
+    count += 1;
+  }
+  if (node.childNodes.length) {
+    node.childNodes.forEach((el) => {
+      count += tagCount(tag, el);
+    })
+  }
+  return count;
+};
 
 // 37. Write a function for binary search.
-// Sample array:  [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-// console.log(binarySearch(5)) will return '5'
 
-var binarySearch = function (array, target, min, max) { };
+/* var binarySearch = function (array, target, min = 0, max = array.length) {
+  let index = Math.floor((max - min) / 2);
+  if (array[index] === target) {
+    return index;
+  } else if (array[index] > target) {
+    max = array.slice(0, index).length;
+    return binarySearch(array.slice(0, index), target, min = 0, max)
+  } else if (array[index] < target) {
+    max = array.slice(index, max).length;
+    return index + binarySearch(array.slice(index, array.length) , target, min = 0, max)
+  } 
+  
+}; */
+function binarySearch(array, value, left = 0, right = array.length) {
+  if (left > right) {
+    return null;
+  }
+  var middle = Math.floor((right + left) / 2);
+  if (array[middle] === value) {
+    return middle;
+  } else if (array[middle] > value) {
+    return binarySearch(array, value, left, middle - 1);
+  } else {
+    return binarySearch(array, value, middle + 1, right);
+  }
+}
+
+
+let array = [2, 3, 5, 7];
+console.log(binarySearch(array, 2)) //will return '5'
+console.log(binarySearch(array, 3)) //will return '5'
+console.log(binarySearch(array, 5)) //will return '5'
+console.log(binarySearch(array, 7)) //will return '5'
 
 // 38. Write a merge sort function.
 // Sample array:  [34,7,23,32,5,62]
