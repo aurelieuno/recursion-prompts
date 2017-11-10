@@ -269,14 +269,17 @@ var countOccurrence = function (array, value) {
 };
 
 // 20. Write a recursive version of map.
-// rMap([1,2,3], timesTwo); // [2,4,6]
-var rMap = function (array, callback) {
-  if (array.length > 0) {
-    return [callback(array[0])].concat(rMap(array.slice(1), callback))
-  } else return [];
+var rMap = function (array, callback, i = 0) {
+  return i ===array.length ? [] : [callback(array[i], i, array)].concat(rMap(array, callback, i +=1))
+
 };
 
+console.log(rMap([1,2,3], x => x * 2)); // [2,4,6]
+const mapR1 = (arr, cb, res = [], i = 0) =>
+  arr.length === i ? res : mapR1(arr, cb, res.concat(cb(arr[i], i, arr)), ++i);
 
+const mapR2 = (arr, cb, i = 0) =>
+  arr.length === i ? [] : [cb(arr[i], i, arr)].concat(mapR2(arr, cb, ++i));
 // 21. Write a function that counts the number of times a key occurs in an object.
 // var testobj = {'e': {'x':'y'}, 't':{'r': {'e':'r'}, 'p': {'y':'r'}},'y':'e'};
 // countKeysInObj(testobj, 'r') // 1
@@ -288,7 +291,7 @@ var countKeysInObj = function (obj, key) {
       count += 1;
     }
     if (typeof obj[prop] === 'object') {
-      count = count + countKeysInObj(obj[prop], key)
+      count += countKeysInObj(obj[prop], key)
     }
   }
   return count;
@@ -305,7 +308,7 @@ var countValuesInObj = function (obj, value) {
       count += 1;
     }
     if (typeof obj[prop] === 'object') {
-      count = count + countValuesInObj(obj[prop], value);
+      count += countValuesInObj(obj[prop], value);
     }
   }
   return count;
@@ -313,10 +316,25 @@ var countValuesInObj = function (obj, value) {
 
 // 23. Find all keys in an object (and nested objects) by a provided name and rename
 // them to a provided new name while preserving the value stored at that key.
+    var replaceKeysInObj = function (obj, key, newKey) {
+      var replaced = {};
+    
+      for (var i in obj) {
+        if (i === key) {
+          replaced[newKey] = obj[i];
+        } else if (typeof obj[i] === "object") {
+          replaced[i] = replaceKeysInObj(obj[i], key, newKey);
+        } else {
+          replaced[i] = obj[i];
+        }
+      }
+    
+      return replaced;
+    };
 var replaceKeysInObj = function (obj, key, newKey) {
   for (let prop in obj) {
     if (typeof obj[prop] === "object") {
-      replaceKeysInObj(obj[prop], key, newKey)
+      obj[prop] = replaceKeysInObj(obj[prop], key, newKey)
     }
     if (prop === key) {
       obj[newKey] = obj[prop]
@@ -325,8 +343,14 @@ var replaceKeysInObj = function (obj, key, newKey) {
   }
   return obj;
 };
-
-var testobj = { 'b': { 'r': 'y' }, 'r': { 'r': { 'e': 'r' }, 'p': { 'r': 'v' } }, 'y': 'e' };
+var testobj = {
+  'b': { 'r': 'y' },
+  'r': {
+    'r': { 'e': 'r' },
+    'p': { 'r': 'v' }
+  },
+  'y': 'e'
+};
 console.log(replaceKeysInObj(testobj, 'r', 'a')) 
 
 
@@ -393,7 +417,7 @@ var nestedEvenSum = function (obj) {
       sum += obj[prop];
     }
     if (typeof obj[prop] === 'object') {
-      sum = sum + nestedEvenSum(obj[prop]);
+      sum += nestedEvenSum(obj[prop]);
     }
   }
   return sum;
@@ -495,16 +519,15 @@ var numToText = function (str) {
 // *** EXTRA CREDIT ***
 
 // 36. Return the number of times a tag occurs in the DOM.
-var tagCount = function (tag, node, count = 0) {
 
+var tagCount = function (tag, node = document.body, count = 0) {
   if (node.nodeName === tag.toUpperCase()) {
     count += 1;
   }
-  if (node.childNodes.length) {
-    node.childNodes.forEach((el) => {
-      count += tagCount(tag, el);
-    })
-  }
+  node.childNodes.forEach((el) => {
+    count += tagCount(tag, el);//if i dont give count defaut to count == 0 and I can add up;
+  })
+
   return count;
 };
 
@@ -547,4 +570,31 @@ console.log(binarySearch(array, 7)) //will return '5'
 // 38. Write a merge sort function.
 // Sample array:  [34,7,23,32,5,62]
 // Sample output: [5,7,23,32,34,62]
-var mergeSort = function (array) { };
+var merge = function (left, right) {
+    var result = [],
+        il = 0,
+        ir = 0;
+
+    while (il < left.length && ir < right.length) {
+        if (left[il] < right[ir]) {
+            result.push(left[il++]);
+        } else {
+            result.push(right[ir++]);
+        }
+    }
+
+    return result.concat(left.slice(il)).concat(right.slice(ir));
+}
+var mergeSort = function(items) {
+
+    if (items.length < 2) {
+        return items;
+    }
+
+    var middle = Math.floor(items.length / 2),
+        left = items.slice(0, middle),
+        right = items.slice(middle);
+
+    return merge(mergeSort(left), mergeSort(right));
+}
+
